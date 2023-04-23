@@ -11,7 +11,23 @@ from .api import CloudflareImagesAPIv1
 
 @deconstructible
 class LimitedStorageCloudflareImages(Storage):
-    """Custom Storage Class based on Django docs [instructions](https://docs.djangoproject.com/en/dev/howto/custom-file-storage/#django.core.files.storage._open)"""  # noqa: E501
+    """Custom Storage Class based on Django docs [instructions](https://docs.djangoproject.com/en/dev/howto/custom-file-storage/#django.core.files.storage._open)
+
+    Starting with Django 4.2, add to `STORAGES` setting:
+
+    STORAGES["cloudflare_images"] = {
+        "BACKEND": "cloudflare_images.django.LimitedStorageCloudflareImages",
+    },
+
+    Then can refer to this via:
+
+    ```py
+    from django.core.files.storage import storages
+    id = <image-id-uploaded>
+    storages["cloudflare_images"].url_variant(id, 'public')
+    ```
+
+    """  # noqa: E501
 
     def __init__(self):
         super().__init__()
