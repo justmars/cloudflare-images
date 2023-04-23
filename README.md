@@ -6,6 +6,6 @@
 
 See [documentation](https://justmars.github.io/cloudflare-images).
 
-1. Run `poetry shell`
-2. Run `poetry update`
+1. Run `poetry install`
+2. Run `poetry shell`
 3. Run `pytest`
