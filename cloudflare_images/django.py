@@ -15,16 +15,26 @@ class LimitedStorageCloudflareImages(Storage):
 
     Starting with Django 4.2, add to `STORAGES` setting:
 
+    ```python title="Django settings.py"
     STORAGES["cloudflare_images"] = {
         "BACKEND": "cloudflare_images.django.LimitedStorageCloudflareImages",
-    },
+    }
+    ```
 
     Then can refer to this via:
 
-    ```py
+    ```python title="Invocation"
     from django.core.files.storage import storages
+    cf = storages["cloudflare_images"]
+
+    # assume previous upload done
     id = <image-id-uploaded>
-    storages["cloudflare_images"].url_variant(id, 'public')
+
+    # get image url, defaults to 'public' variant
+    cf.url(id)
+
+    # specified 'avatar' variant, assuming it was created in the Cloudflare Images dashboard / API
+    cf.url_variant(id, 'avatar')
     ```
 
     """  # noqa: E501

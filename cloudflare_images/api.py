@@ -21,7 +21,7 @@ class CloudflareImagesAPIv1(BaseSettings):
     Add secrets to .env file and use as follows:
 
     Examples:
-    ```py title="Example Usage" linenums="1" hl_lines="5 18"
+    ```py title="Example Usage" linenums="1" hl_lines="4 14 23"
     >>> from pathlib import Path
     >>> import os
     >>> import io
