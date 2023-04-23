@@ -1,3 +1,9 @@
+---
+hide:
+  - navigation
+  - toc
+---
+
 # Cloudflare Images
 
-::: src.api.CloudflareImagesAPIv1
+::: cloudflare_images.api.CloudflareImagesAPIv1

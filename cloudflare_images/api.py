@@ -9,7 +9,7 @@ CF_DELIVER: Final = "https://imagedelivery.net"
 
 class CloudflareImagesAPIv1(BaseSettings):
     """
-    Need to setup a Cloudflare Images account to use. See Cloudflare Images [docs](https://developers.cloudflare.com/images/cloudflare-images/) API v4.
+    Need to setup a Cloudflare Images account to use. See Cloudflare Images [docs](https://developers.cloudflare.com/images/cloudflare-images/).
     With required variables secured:
 
     Field in .env | Cloudflare API Credential | Where credential found
