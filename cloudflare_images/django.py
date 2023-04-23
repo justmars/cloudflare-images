@@ -15,9 +15,18 @@ class LimitedStorageCloudflareImages(Storage):
 
     Starting with Django 4.2, add to `STORAGES` setting:
 
-    ```python title="Django settings.py"
-    STORAGES["cloudflare_images"] = {
-        "BACKEND": "cloudflare_images.django.LimitedStorageCloudflareImages",
+    ```python title="Django settings.py" linenums="1" hl_lines="9 10"
+    ...
+    STORAGES = {  # django 4.2 and above
+        "default": {  # default
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {  # default
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+        "cloudflare_images": {  # add
+            "BACKEND": "cloudflare_images.django.ImageStorageCloudflare",
+        },
     }
     ```
 
