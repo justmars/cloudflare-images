@@ -30,7 +30,19 @@ class LimitedStorageCloudflareImages(Storage):
     }
     ```
 
-    Then can refer to this via:
+    Can then define a [callable](https://docs.djangoproject.com/en/dev/topics/files/#using-a-callable) likeso:
+
+    ```python title="For use in ImageField"
+    from django.core.files.storage import storages
+
+    def select_storage(is_remote_env: bool):
+        return storages["cloudflare_images"] if is_remote_env else storages["default"]
+
+    class MyModel(models.Model):
+        my_img = models.ImageField(storage=select_storage)
+    ```
+
+    Can also refer to it via:
 
     ```python title="Invocation"
     from django.core.files.storage import storages
@@ -45,6 +57,7 @@ class LimitedStorageCloudflareImages(Storage):
     # specified 'avatar' variant, assuming it was created in the Cloudflare Images dashboard / API
     cf.url_variant(id, 'avatar')
     ```
+
 
     """  # noqa: E501
 
