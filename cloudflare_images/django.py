@@ -1,4 +1,3 @@
-import datetime
 from http import HTTPStatus
 
 import httpx
@@ -72,8 +71,7 @@ class LimitedStorageCloudflareImages(Storage):
         return File(self.api.get(img_id=name), name=name)
 
     def _save(self, name: str, content: bytes) -> str:
-        timestamp = datetime.datetime.now().isoformat()
-        res = self.api.post(f"{name}/{timestamp}", content)
+        res = self.api.upsert(name, content)
         return self.api.url(img_id=res.json()["result"]["id"])
 
     def get_valid_name(self, name):
