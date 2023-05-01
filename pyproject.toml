@@ -1,10 +1,10 @@
 [tool.poetry]
 name = "cloudflare-images"
 description = "Wrapper around Cloudflare Images API, usable custom Django storage class."
-version = "0.0.2"
+version = "0.0.3"
 authors = ["Marcelino G. Veloso III <mars@veloso.one>"]
 readme = "README.md"
-license = "MIT"
+license = "BSD-3-Clause"
 homepage = "https://mv3.dev"
 repository = "https://github.com/justmars/cloudflare-images"
 documentation = "https://mv3.dev/cloudflare-images"
