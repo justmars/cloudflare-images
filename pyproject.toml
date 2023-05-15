@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "cloudflare-images"
 description = "Wrapper around Cloudflare Images API, usable custom Django storage class."
-version = "0.0.3"
+version = "0.0.4"
 authors = ["Marcelino G. Veloso III <mars@veloso.one>"]
 readme = "README.md"
 license = "BSD-3-Clause"
@@ -18,14 +18,12 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.11"
-python-dotenv = "^0.21"
 httpx = "^0.24.0"
-pydantic = "^1.10.7"
 django = "^4.2"
+start-cloudflare = "^0.0.1"
 
 [tool.poetry.group.dev.dependencies] # latest as of Jan. 2023
 rich = "^13.3"
-black = "^23.3.0"
 pytest = "^7.2"
 pytest-datadir = "^1.4.1"
 pytest-cov = "^2.12.1"
@@ -33,13 +31,12 @@ pre-commit = "^2.21"
 mkdocs = "^1.4.2"
 mkdocstrings = { extras = ["python"], version = "^0.20.0" }
 mkdocs-material = "^9.1"
-ipykernel = "^6.22.0"
 
 [tool.pytest.ini_options]
 minversion = "7.2"
 addopts = "-ra -q --doctest-modules --cov"
 filterwarnings = ["ignore::DeprecationWarning"]
-testpaths = ["tests"]
+testpaths = ["tests", "cloudflare_images"]
 
 [tool.ruff]
 ignore = ["F401", "F403"]

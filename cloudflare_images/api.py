@@ -1,20 +1,20 @@
 from typing import Final
 
 import httpx
-from pydantic import BaseSettings, Field
+from pydantic import Field
+from start_cloudflare import CF
 
-CF_API_URL: Final = "https://api.cloudflare.com"
 CF_DELIVER: Final = "https://imagedelivery.net"
 
 
-class CloudflareImagesAPIv1(BaseSettings):
+class CloudflareImagesAPIv1(CF):
     """
     Need to setup a Cloudflare Images account to use. See Cloudflare Images [docs](https://developers.cloudflare.com/images/cloudflare-images/).
     With required variables secured:
 
     Field in .env | Cloudflare API Credential | Where credential found
     :--|:--:|:--
-    `CF_IMG_ACCT` | Account ID |  `https://dash.cloudflare.com/<acct_id>/images/images`
+    `CF_ACCT_ID` | Account ID |  `https://dash.cloudflare.com/<acct_id>/images/images`
     `CF_IMG_HASH` | Account Hash | `https://dash.cloudflare.com/<acct_id>/images/images`
     `CF_IMG_TOKEN` | API Secret | Generate / save via `https://dash.cloudflare.com/<acct_id>/profile/api-tokens`
 
@@ -28,7 +28,7 @@ class CloudflareImagesAPIv1(BaseSettings):
     >>> cf = CloudflareImagesAPIv1() # will error out since missing key values
     Traceback (most recent call last):
     pydantic.error_wrappers.ValidationError: 3 validation errors for CloudflareImagesAPIv1
-    acct_id
+    account_id
       field required (type=value_error.missing)
     cf_img_hash
       field required (type=value_error.missing)
@@ -45,7 +45,7 @@ class CloudflareImagesAPIv1(BaseSettings):
     >>> # we'll add all the values needed
     >>> os.environ['CF_IMG_HASH'], os.environ['CF_IMG_TOKEN'] = "DEF", "XYZ"
     >>> cf = CloudflareImagesAPIv1() # no longer errors out
-    >>> cf.headers
+    >>> CF.set_bearer_auth(cf.api_token)
     {'Authorization': 'Bearer XYZ'}
     >>> cf.base_api
     'https://api.cloudflare.com/client/v4/accounts/ABC/images/v1'
@@ -63,11 +63,11 @@ class CloudflareImagesAPIv1(BaseSettings):
     ```
     """  # noqa: E501
 
-    acct_id: str = Field(
+    account_id: str = Field(
         default=...,
         repr=False,
         title="Cloudflare Account ID",
-        description="Used in other Cloudflare services like R2, etc.",
+        description="Overrides the base setting by making this mandatory.",
         env="CF_ACCT_ID",
     )
     cf_img_hash: str = Field(
@@ -106,20 +106,27 @@ class CloudflareImagesAPIv1(BaseSettings):
         env_file_encoding = "utf-8"
 
     @property
-    def headers(self) -> dict:
-        return {"Authorization": f"Bearer {self.api_token}"}
-
-    @property
     def client(self):
         return httpx.Client(timeout=self.timeout)
 
     @property
-    def base_api(self):
-        """Construct URL based on Cloudflare API [format](https://developers.cloudflare.com/images/cloudflare-images/api-request/)"""  # noqa: E501
-        client = f"client/{self.client_api_ver}"
-        account = f"accounts/{self.acct_id}"
-        images = f"images/{self.images_api_ver}"
-        return "/".join([CF_API_URL, client, account, images])
+    def base_api(self) -> str:
+        """Construct URL based on Cloudflare API [format](https://developers.cloudflare.com/images/cloudflare-images/api-request/)
+
+        Examples:
+            >>> import os
+            >>> os.environ['CF_ACCT_ID'] = "ABC"
+            >>> os.environ['CF_IMG_HASH'], os.environ['CF_IMG_TOKEN'] = "DEF", "XYZ"
+            >>> cf = CloudflareImagesAPIv1()
+            >>> cf.base_api
+            'https://api.cloudflare.com/client/v4/accounts/ABC/images/v1'
+
+        Returns:
+            str: URL endpoint to make requests with the Cloudflare-supplied credentials.
+        """
+        return self.add_account_endpoint(
+            f"/{self.account_id}/images/{self.images_api_ver}"
+        )
 
     @property
     def base_delivery(self):
@@ -136,9 +143,23 @@ class CloudflareImagesAPIv1(BaseSettings):
         """  # noqa: E501
         return "/".join([CF_DELIVER, self.cf_img_hash])
 
-    def url(self, img_id: str, variant: str = "public"):
+    def url(self, img_id: str, variant: str = "public") -> str:
         """Generates url based on the Cloudflare hash of the account. The `variant` is based on
         how these are customized on Cloudflare Images. See also flexible variant [docs](https://developers.cloudflare.com/images/cloudflare-images/transform/flexible-variants/)
+        Examples:
+            >>> import os
+            >>> os.environ['CF_ACCT_ID'] = "ABC"
+            >>> os.environ['CF_IMG_HASH'], os.environ['CF_IMG_TOKEN'] = "DEF", "XYZ"
+            >>> cf = CloudflareImagesAPIv1()
+            >>> cf.url('sample-img', 'avatar')
+            'https://imagedelivery.net/DEF/sample-img/avatar'
+
+        Args:
+            img_id (str): The uploaded ID
+            variant (str, optional): The variant created in the Cloudflare Images dashboard. Defaults to "public".
+
+        Returns:
+            str: URL to display the request `img_id` with `variant`.
         """  # noqa: E501
         return "/".join([self.base_delivery, img_id, variant])
 
@@ -170,7 +191,7 @@ class CloudflareImagesAPIv1(BaseSettings):
         """
         return self.client.get(
             url=f"{self.base_api}/{img_id}",
-            headers=self.headers,
+            headers=CF.set_bearer_auth(self.api_token),
             *args,
             **kwargs,
         )
@@ -179,7 +200,7 @@ class CloudflareImagesAPIv1(BaseSettings):
         """Issue httpx [DELETE](https://developers.cloudflare.com/images/cloudflare-images/transform/delete-images/) request to the image."""  # noqa: E501
         return self.client.delete(
             url=f"{self.base_api}/{img_id}",
-            headers=self.headers,
+            headers=CF.set_bearer_auth(self.api_token),
             *args,
             **kwargs,
         )
@@ -188,7 +209,7 @@ class CloudflareImagesAPIv1(BaseSettings):
         """Issue httpx [POST](https://developers.cloudflare.com/images/cloudflare-images/upload-images/upload-via-url/) request to upload image."""  # noqa: E501
         return self.client.post(
             url=self.base_api,
-            headers=self.headers,
+            headers=CF.set_bearer_auth(self.api_token),
             data={"id": img_id},
             files={"file": (img_id, img)},
             *args,
