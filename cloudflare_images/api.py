@@ -21,51 +21,51 @@ class CloudflareImagesAPIv1(CF):
     Add secrets to .env file and use as follows:
 
     Examples:
-    ```py title="Example Usage" linenums="1"
-    >>> cf = CloudflareImagesAPIv1() # will error out since missing key values
-    Traceback (most recent call last):
-    pydantic_core._pydantic_core.ValidationError: 3 validation errors for CloudflareImagesAPIv1
-    CF_ACCT_ID
-      Field required [type=missing, input_value={}, input_type=dict]
-        For further information visit https://errors.pydantic.dev/2.3/v/missing
-    CF_IMG_HASH
-      Field required [type=missing, input_value={}, input_type=dict]
-        For further information visit https://errors.pydantic.dev/2.3/v/missing
-    CF_IMG_TOKEN
-      Field required [type=missing, input_value={}, input_type=dict]
-        For further information visit https://errors.pydantic.dev/2.3/v/missing
-    >>> import os
-    >>> os.environ['CF_ACCT_ID'] = "ABC"
-    >>> cf = CloudflareImagesAPIv1() # will error out since still missing other values
-    Traceback (most recent call last):
-    pydantic_core._pydantic_core.ValidationError: 2 validation errors for CloudflareImagesAPIv1
-    CF_IMG_HASH
-      Field required [type=missing, input_value={'CF_ACCT_ID': 'ABC'}, input_type=dict]
-        For further information visit https://errors.pydantic.dev/2.3/v/missing
-    CF_IMG_TOKEN
-      Field required [type=missing, input_value={'CF_ACCT_ID': 'ABC'}, input_type=dict]
-        For further information visit https://errors.pydantic.dev/2.3/v/missing
-    >>> # we'll add all the values needed
-    >>> os.environ['CF_IMG_HASH'], os.environ['CF_IMG_TOKEN'] = "DEF", "XYZ"
-    >>> cf = CloudflareImagesAPIv1() # no longer errors out
-    >>> CF.set_bearer_auth(cf.api_token)
-    {'Authorization': 'Bearer XYZ'}
-    >>> cf.base_api
-    'https://api.cloudflare.com/client/v4/accounts/ABC/images/v1'
-    >>> cf.base_delivery
-    'https://imagedelivery.net/DEF'
-    >>> cf.url('hi-bob', 'w=400,sharpen=3')
-    'https://imagedelivery.net/DEF/hi-bob/w=400,sharpen=3'
-    >>> from pathlib import Path
-    >>> p = Path().cwd() / "img" / "screenshot.png"
-    >>> p.exists() # Sample image found in `/img/screenshot.png`
-    True
-    >>> import io
-    >>> img = io.BytesIO(p.read_bytes())
-    >>> type(img)
-    <class '_io.BytesIO'>
-    >>> # Can now use img in `cf.post('sample_id', img)`
-    ```
+        ```py title="Example Usage" linenums="1"
+        >>> cf = CloudflareImagesAPIv1() # will error out since missing key values
+        Traceback (most recent call last):
+        pydantic_core._pydantic_core.ValidationError: 3 validation errors for CloudflareImagesAPIv1
+        CF_ACCT_ID
+          Field required [type=missing, input_value={}, input_type=dict]
+            For further information visit https://errors.pydantic.dev/2.3/v/missing
+        CF_IMG_HASH
+          Field required [type=missing, input_value={}, input_type=dict]
+            For further information visit https://errors.pydantic.dev/2.3/v/missing
+        CF_IMG_TOKEN
+          Field required [type=missing, input_value={}, input_type=dict]
+            For further information visit https://errors.pydantic.dev/2.3/v/missing
+        >>> import os
+        >>> os.environ['CF_ACCT_ID'] = "ABC"
+        >>> cf = CloudflareImagesAPIv1() # will error out since still missing other values
+        Traceback (most recent call last):
+        pydantic_core._pydantic_core.ValidationError: 2 validation errors for CloudflareImagesAPIv1
+        CF_IMG_HASH
+          Field required [type=missing, input_value={'CF_ACCT_ID': 'ABC'}, input_type=dict]
+            For further information visit https://errors.pydantic.dev/2.3/v/missing
+        CF_IMG_TOKEN
+          Field required [type=missing, input_value={'CF_ACCT_ID': 'ABC'}, input_type=dict]
+            For further information visit https://errors.pydantic.dev/2.3/v/missing
+        >>> # we'll add all the values needed
+        >>> os.environ['CF_IMG_HASH'], os.environ['CF_IMG_TOKEN'] = "DEF", "XYZ"
+        >>> cf = CloudflareImagesAPIv1() # no longer errors out
+        >>> CF.set_bearer_auth(cf.api_token)
+        {'Authorization': 'Bearer XYZ'}
+        >>> cf.base_api
+        'https://api.cloudflare.com/client/v4/accounts/ABC/images/v1'
+        >>> cf.base_delivery
+        'https://imagedelivery.net/DEF'
+        >>> cf.url('hi-bob', 'w=400,sharpen=3')
+        'https://imagedelivery.net/DEF/hi-bob/w=400,sharpen=3'
+        >>> from pathlib import Path
+        >>> p = Path().cwd() / "img" / "screenshot.png"
+        >>> p.exists() # Sample image found in `/img/screenshot.png`
+        True
+        >>> import io
+        >>> img = io.BytesIO(p.read_bytes())
+        >>> type(img)
+        <class '_io.BytesIO'>
+        >>> # Can now use img in `cf.post('sample_id', img)`
+        ```
     """  # noqa: E501
 
     account_id: str = Field(

@@ -34,8 +34,10 @@ class LimitedStorageCloudflareImages(Storage):
     ```python title="For use in ImageField"
     from django.core.files.storage import storages
 
+
     def select_storage(is_remote_env: bool):
         return storages["cloudflare_images"] if is_remote_env else storages["default"]
+
 
     class MyModel(models.Model):
         my_img = models.ImageField(storage=select_storage)

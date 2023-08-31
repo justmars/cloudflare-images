@@ -11,7 +11,7 @@ repos:
       - id: name-tests-test
         args: ["--django"]
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.262
+    rev: v0.0.286
     hooks:
       - id: ruff
   - repo: https://github.com/psf/black
@@ -21,8 +21,9 @@ repos:
         language_version: python3
         args: [--preview]
   - repo: https://github.com/asottile/blacken-docs
-    rev: 1.13.0
+    rev: 1.16.0
     hooks:
       - id: blacken-docs
         additional_dependencies:
           - black==23.7.0
+        args: [--skip-errors]
