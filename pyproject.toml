@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "cloudflare-images"
 description = "Wrapper around Cloudflare Images API, usable custom Django storage class."
-version = "0.0.4"
+version = "0.0.5"
 authors = ["Marcelino G. Veloso III <mars@veloso.one>"]
 readme = "README.md"
 license = "BSD-3-Clause"
@@ -20,7 +20,7 @@ classifiers = [
 python = "^3.11"
 httpx = "^0.24.0"
 django = "^4.2"
-start-cloudflare = "^0.0.1"
+start-cloudflare = "^0.0.4"
 
 [tool.poetry.group.dev.dependencies] # latest as of Jan. 2023
 rich = "^13.3"
@@ -30,7 +30,7 @@ pytest-cov = "^2.12.1"
 pre-commit = "^2.21"
 mkdocs = "^1.4.2"
 mkdocstrings = { extras = ["python"], version = "^0.20.0" }
-mkdocs-material = "^9.1"
+mkdocs-material = "^9.2.6"
 
 [tool.pytest.ini_options]
 minversion = "7.2"
@@ -42,24 +42,6 @@ testpaths = ["tests", "cloudflare_images"]
 ignore = ["F401", "F403"]
 fixable = ["F", "E", "W", "I001"]
 select = ["F", "E", "W", "I001"]
-
-[tool.black]
-target-version = ['py311']
-line-length = 79
-include = '.pyi?$'
-exclude = '''
-/(
-    .git
-    | .hg
-    | .mypy_cache
-    | .tox
-    | .venv
-    | _build
-    | buck-out
-    | build
-    | dist
-)/
-'''
 
 [build-system]
 requires = ["poetry-core>=1.3.2"]

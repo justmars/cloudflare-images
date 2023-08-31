@@ -21,27 +21,30 @@ class CloudflareImagesAPIv1(CF):
     Add secrets to .env file and use as follows:
 
     Examples:
-    ```py title="Example Usage" linenums="1" hl_lines="4 14 23"
-    >>> from pathlib import Path
-    >>> import os
-    >>> import io
+    ```py title="Example Usage" linenums="1"
     >>> cf = CloudflareImagesAPIv1() # will error out since missing key values
     Traceback (most recent call last):
-    pydantic.error_wrappers.ValidationError: 3 validation errors for CloudflareImagesAPIv1
-    account_id
-      field required (type=value_error.missing)
-    cf_img_hash
-      field required (type=value_error.missing)
-    api_token
-      field required (type=value_error.missing)
+    pydantic_core._pydantic_core.ValidationError: 3 validation errors for CloudflareImagesAPIv1
+    CF_ACCT_ID
+      Field required [type=missing, input_value={}, input_type=dict]
+        For further information visit https://errors.pydantic.dev/2.3/v/missing
+    CF_IMG_HASH
+      Field required [type=missing, input_value={}, input_type=dict]
+        For further information visit https://errors.pydantic.dev/2.3/v/missing
+    CF_IMG_TOKEN
+      Field required [type=missing, input_value={}, input_type=dict]
+        For further information visit https://errors.pydantic.dev/2.3/v/missing
+    >>> import os
     >>> os.environ['CF_ACCT_ID'] = "ABC"
     >>> cf = CloudflareImagesAPIv1() # will error out since still missing other values
     Traceback (most recent call last):
-    pydantic.error_wrappers.ValidationError: 2 validation errors for CloudflareImagesAPIv1
-    cf_img_hash
-      field required (type=value_error.missing)
-    api_token
-      field required (type=value_error.missing)
+    pydantic_core._pydantic_core.ValidationError: 2 validation errors for CloudflareImagesAPIv1
+    CF_IMG_HASH
+      Field required [type=missing, input_value={'CF_ACCT_ID': 'ABC'}, input_type=dict]
+        For further information visit https://errors.pydantic.dev/2.3/v/missing
+    CF_IMG_TOKEN
+      Field required [type=missing, input_value={'CF_ACCT_ID': 'ABC'}, input_type=dict]
+        For further information visit https://errors.pydantic.dev/2.3/v/missing
     >>> # we'll add all the values needed
     >>> os.environ['CF_IMG_HASH'], os.environ['CF_IMG_TOKEN'] = "DEF", "XYZ"
     >>> cf = CloudflareImagesAPIv1() # no longer errors out
@@ -53,9 +56,11 @@ class CloudflareImagesAPIv1(CF):
     'https://imagedelivery.net/DEF'
     >>> cf.url('hi-bob', 'w=400,sharpen=3')
     'https://imagedelivery.net/DEF/hi-bob/w=400,sharpen=3'
+    >>> from pathlib import Path
     >>> p = Path().cwd() / "img" / "screenshot.png"
     >>> p.exists() # Sample image found in `/img/screenshot.png`
     True
+    >>> import io
     >>> img = io.BytesIO(p.read_bytes())
     >>> type(img)
     <class '_io.BytesIO'>
@@ -68,42 +73,38 @@ class CloudflareImagesAPIv1(CF):
         repr=False,
         title="Cloudflare Account ID",
         description="Overrides the base setting by making this mandatory.",
-        env="CF_ACCT_ID",
+        validation_alias="CF_ACCT_ID",
     )
     cf_img_hash: str = Field(
         default=...,
         repr=False,
         title="Cloudflare Image Hash",
         description="Assigned when you create a Cloudflare Images account",
-        env="CF_IMG_HASH",
+        validation_alias="CF_IMG_HASH",
     )
     api_token: str = Field(
         default=...,
         repr=False,
         title="Cloudflare Image API Token",
         description="Secure token to perform API operations",
-        env="CF_IMG_TOKEN",
+        validation_alias="CF_IMG_TOKEN",
     )
     client_api_ver: str = Field(
         default="v4",
         title="Cloudflare Client API Version",
         description="Used in the middle of the URL in API requests.",
-        env="CLOUDFLARE_CLIENT_API_VERSION",
+        validation_alias="CLOUDFLARE_CLIENT_API_VERSION",
     )
     images_api_ver: str = Field(
         default="v1",
         title="Cloudflare Images API Version",
         description="Used at the end of URL in API requests.",
-        env="CLOUDFLARE_IMAGES_API_VERSION",
+        validation_alias="CLOUDFLARE_IMAGES_API_VERSION",
     )
     timeout: int = Field(
         default=60,
-        env="CF_IMG_TOKEN_TIMEOUT",
+        validation_alias="CF_IMG_TOKEN_TIMEOUT",
     )
-
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
 
     @property
     def client(self):
@@ -111,7 +112,7 @@ class CloudflareImagesAPIv1(CF):
 
     @property
     def base_api(self) -> str:
-        """Construct URL based on Cloudflare API [format](https://developers.cloudflare.com/images/cloudflare-images/api-request/)
+        """Construct endpoint. See [formula](https://developers.cloudflare.com/images/cloudflare-images/api-request/).
 
         Examples:
             >>> import os
@@ -130,22 +131,26 @@ class CloudflareImagesAPIv1(CF):
 
     @property
     def base_delivery(self):
-        """The images are served with the following format:
+        """Images are served with the following format: `https://imagedelivery.net/<ACCOUNT_HASH>/<IMAGE_ID>/<VARIANT_NAME>`
 
-        `https://imagedelivery.net/<ACCOUNT_HASH>/<IMAGE_ID>/<VARIANT_NAME>`
-
-        This property constructs the first part:
-
-        `https://imagedelivery.net/<ACCOUNT_HASH>`
+        This property constructs the first part: `https://imagedelivery.net/<ACCOUNT_HASH>`
 
         See Cloudflare [docs](https://developers.cloudflare.com/images/cloudflare-images/serve-images/).
 
+        Examples:
+        >>> import os
+            >>> os.environ['CF_ACCT_ID'] = "ABC"
+            >>> os.environ['CF_IMG_HASH'], os.environ['CF_IMG_TOKEN'] = "DEF", "XYZ"
+            >>> cf = CloudflareImagesAPIv1()
+            >>> cf.base_delivery
+            'https://imagedelivery.net/DEF'
         """  # noqa: E501
         return "/".join([CF_DELIVER, self.cf_img_hash])
 
     def url(self, img_id: str, variant: str = "public") -> str:
         """Generates url based on the Cloudflare hash of the account. The `variant` is based on
         how these are customized on Cloudflare Images. See also flexible variant [docs](https://developers.cloudflare.com/images/cloudflare-images/transform/flexible-variants/)
+
         Examples:
             >>> import os
             >>> os.environ['CF_ACCT_ID'] = "ABC"

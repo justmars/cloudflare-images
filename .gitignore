@@ -1,6 +1,5 @@
 .DS_Store
 .ruff_cache
-poetry.lock
 .vscode
 
 # Byte-compiled / optimized / DLL files
