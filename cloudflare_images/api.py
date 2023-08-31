@@ -1,4 +1,5 @@
 from typing import Final
+from urllib.parse import urlencode
 
 import httpx
 from pydantic import Field
@@ -130,6 +131,20 @@ class CloudflareImagesAPIv1(CF):
         )
 
     @property
+    def v2(self) -> str:
+        """See updated [list API endpoint](https://developers.cloudflare.com/api/operations/cloudflare-images-list-images-v2).
+
+        Examples:
+            >>> import os
+            >>> os.environ['CF_ACCT_ID'] = "ABC"
+            >>> os.environ['CF_IMG_HASH'], os.environ['CF_IMG_TOKEN'] = "DEF", "XYZ"
+            >>> cf = CloudflareImagesAPIv1()
+            >>> cf.v2_api
+            'https://api.cloudflare.com/client/v4/accounts/ABC/images/v2'
+        """
+        return self.add_account_endpoint(f"/{self.account_id}/images/v2")
+
+    @property
     def base_delivery(self):
         """Images are served with the following format: `https://imagedelivery.net/<ACCOUNT_HASH>/<IMAGE_ID>/<VARIANT_NAME>`
 
@@ -226,3 +241,34 @@ class CloudflareImagesAPIv1(CF):
         uploading the `img`."""
         self.delete(img_id)
         return self.post(img_id, img)
+
+    def list_images(
+        self,
+        per_page: int = 1000,
+        sort_order: str = "desc",
+        continuation_token: str | None = None,
+    ) -> httpx.Response:
+        """See [list images API](https://developers.cloudflare.com/api/operations/cloudflare-images-list-images-v2).
+
+        Args:
+            per_page (int, optional): Number of items per page (10 to 10,000). Defaults to 1000.
+            sort_order (str, optional): Sorting order by upload time (asc | desc). Defaults to "desc".
+            continuation_token (str | None, optional): Continuation token for a next page. List images V2 returns continuation_token. Defaults to None.
+
+        Returns:
+            httpx.Response: Contains top-level fields for `success`, `errors`, `messages` and the `result`.
+        """  # noqa: E501
+
+        if per_page < 10 or per_page > 10000:
+            raise Exception(f"Improper {per_page=}")
+        if sort_order not in ["asc", "desc"]:
+            raise Exception(f"Improper {sort_order=}")
+        params = {"per_page": per_page, "sort_order": sort_order}
+
+        if continuation_token:
+            params["continuation_token"] = continuation_token
+        qs = urlencode(params)
+
+        return self.client.get(
+            url=f"{self.v2}?{qs}", headers=CF.set_bearer_auth(self.api_token)
+        )
