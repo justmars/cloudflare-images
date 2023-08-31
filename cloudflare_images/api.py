@@ -139,7 +139,7 @@ class CloudflareImagesAPIv1(CF):
             >>> os.environ['CF_ACCT_ID'] = "ABC"
             >>> os.environ['CF_IMG_HASH'], os.environ['CF_IMG_TOKEN'] = "DEF", "XYZ"
             >>> cf = CloudflareImagesAPIv1()
-            >>> cf.v2_api
+            >>> cf.v2
             'https://api.cloudflare.com/client/v4/accounts/ABC/images/v2'
         """
         return self.add_account_endpoint(f"/{self.account_id}/images/v2")

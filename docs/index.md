@@ -18,4 +18,4 @@ hide:
 
 ## Django
 
-::: cloudflare_images.django.LimitedStorageCloudflareImages
+::: cloudflare_images.dj.LimitedStorageCloudflareImages
