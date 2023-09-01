@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "cloudflare-images"
-description = "Wrapper around Cloudflare Images API, usable custom Django storage class."
-version = "0.0.5"
+description = "Wrapper around Cloudflare Images API"
+version = "0.1.0"
 authors = ["Marcelino G. Veloso III <mars@veloso.one>"]
 readme = "README.md"
 license = "BSD-3-Clause"
@@ -19,7 +19,6 @@ classifiers = [
 [tool.poetry.dependencies]
 python = "^3.11"
 httpx = "^0.24.0"
-django = "^4.2"
 start-cloudflare = "^0.0.4"
 
 [tool.poetry.group.dev.dependencies] # latest as of Jan. 2023

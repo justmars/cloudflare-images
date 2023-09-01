@@ -1,3 +1,2 @@
-__version__ = "0.0.5"
-from .api import CloudflareImagesAPIv1
-from .dj import LimitedStorageCloudflareImages
+__version__ = "0.1.0"
+from .main import CloudflareImagesAPI

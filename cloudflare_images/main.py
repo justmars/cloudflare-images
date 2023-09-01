@@ -8,7 +8,7 @@ from start_cloudflare import CF
 CF_DELIVER: Final = "https://imagedelivery.net"
 
 
-class CloudflareImagesAPIv1(CF):
+class CloudflareImagesAPI(CF):
     """
     Need to setup a Cloudflare Images account to use. See Cloudflare Images [docs](https://developers.cloudflare.com/images/cloudflare-images/).
     With required variables secured:
@@ -23,9 +23,9 @@ class CloudflareImagesAPIv1(CF):
 
     Examples:
         ```py title="Example Usage" linenums="1"
-        >>> cf = CloudflareImagesAPIv1() # will error out since missing key values
+        >>> cf = CloudflareImagesAPI() # will error out since missing key values
         Traceback (most recent call last):
-        pydantic_core._pydantic_core.ValidationError: 3 validation errors for CloudflareImagesAPIv1
+        pydantic_core._pydantic_core.ValidationError: 3 validation errors for CloudflareImagesAPI
         CF_ACCT_ID
           Field required [type=missing, input_value={}, input_type=dict]
             For further information visit https://errors.pydantic.dev/2.3/v/missing
@@ -37,9 +37,9 @@ class CloudflareImagesAPIv1(CF):
             For further information visit https://errors.pydantic.dev/2.3/v/missing
         >>> import os
         >>> os.environ['CF_ACCT_ID'] = "ABC"
-        >>> cf = CloudflareImagesAPIv1() # will error out since still missing other values
+        >>> cf = CloudflareImagesAPI() # will error out since still missing other values
         Traceback (most recent call last):
-        pydantic_core._pydantic_core.ValidationError: 2 validation errors for CloudflareImagesAPIv1
+        pydantic_core._pydantic_core.ValidationError: 2 validation errors for CloudflareImagesAPI
         CF_IMG_HASH
           Field required [type=missing, input_value={'CF_ACCT_ID': 'ABC'}, input_type=dict]
             For further information visit https://errors.pydantic.dev/2.3/v/missing
@@ -48,7 +48,7 @@ class CloudflareImagesAPIv1(CF):
             For further information visit https://errors.pydantic.dev/2.3/v/missing
         >>> # we'll add all the values needed
         >>> os.environ['CF_IMG_HASH'], os.environ['CF_IMG_TOKEN'] = "DEF", "XYZ"
-        >>> cf = CloudflareImagesAPIv1() # no longer errors out
+        >>> cf = CloudflareImagesAPI() # no longer errors out
         >>> CF.set_bearer_auth(cf.api_token)
         {'Authorization': 'Bearer XYZ'}
         >>> cf.base_api
@@ -119,7 +119,7 @@ class CloudflareImagesAPIv1(CF):
             >>> import os
             >>> os.environ['CF_ACCT_ID'] = "ABC"
             >>> os.environ['CF_IMG_HASH'], os.environ['CF_IMG_TOKEN'] = "DEF", "XYZ"
-            >>> cf = CloudflareImagesAPIv1()
+            >>> cf = CloudflareImagesAPI()
             >>> cf.base_api
             'https://api.cloudflare.com/client/v4/accounts/ABC/images/v1'
 
@@ -138,7 +138,7 @@ class CloudflareImagesAPIv1(CF):
             >>> import os
             >>> os.environ['CF_ACCT_ID'] = "ABC"
             >>> os.environ['CF_IMG_HASH'], os.environ['CF_IMG_TOKEN'] = "DEF", "XYZ"
-            >>> cf = CloudflareImagesAPIv1()
+            >>> cf = CloudflareImagesAPI()
             >>> cf.v2
             'https://api.cloudflare.com/client/v4/accounts/ABC/images/v2'
         """
@@ -156,7 +156,7 @@ class CloudflareImagesAPIv1(CF):
         >>> import os
             >>> os.environ['CF_ACCT_ID'] = "ABC"
             >>> os.environ['CF_IMG_HASH'], os.environ['CF_IMG_TOKEN'] = "DEF", "XYZ"
-            >>> cf = CloudflareImagesAPIv1()
+            >>> cf = CloudflareImagesAPI()
             >>> cf.base_delivery
             'https://imagedelivery.net/DEF'
         """  # noqa: E501
@@ -170,7 +170,7 @@ class CloudflareImagesAPIv1(CF):
             >>> import os
             >>> os.environ['CF_ACCT_ID'] = "ABC"
             >>> os.environ['CF_IMG_HASH'], os.environ['CF_IMG_TOKEN'] = "DEF", "XYZ"
-            >>> cf = CloudflareImagesAPIv1()
+            >>> cf = CloudflareImagesAPI()
             >>> cf.url('sample-img', 'avatar')
             'https://imagedelivery.net/DEF/sample-img/avatar'
 
@@ -183,7 +183,40 @@ class CloudflareImagesAPIv1(CF):
         """  # noqa: E501
         return "/".join([self.base_delivery, img_id, variant])
 
-    def get(self, img_id: str, *args, **kwargs) -> httpx.Response:
+    def get_usage_statistics(self) -> httpx.Response:
+        """Fetch usage statistics details for Cloudflare Images. See [API](https://developers.cloudflare.com/api/operations/cloudflare-images-images-usage-statistics)
+
+        Returns:
+            httpx.Response: Response containing the counts for `allowed` and `current in the result key
+        """ # noqa: E501
+        return self.client.get(
+            url=f"{self.base_api}/stats",
+            headers=CF.set_bearer_auth(self.api_token),
+        )
+
+
+    def get_batch_token(self) -> httpx.Response:
+        """Get a token to use [Images batch API](https://developers.cloudflare.com/images/cloudflare-images/upload-images/images-batch/) for several requests in sequence bypassing Cloudflare's global API rate limits.
+        Note that the token has a expiration time indicated in the response. After the batch token is retrieved,
+        instantiate a new API, like so:
+
+        ```py
+        cf = CloudflareImagesAPI() # uses the .env file's CF_IMG_TOKEN
+        batch_token = cf.get_batch_token().json()['result']['token]
+        batchable = CloudflareImagesAPI(CF_IMG_TOKEN=batch_token) # different token used
+        ```
+
+        Using `batchable.get`, `batchable.post`, etc. should be usable
+
+        Returns:
+            httpx.Response: Response containing the batch `token` in the result key
+        """ # noqa: E501
+        return self.client.get(
+            url=f"{self.base_api}/batch_token",
+            headers=CF.set_bearer_auth(self.api_token),
+        )
+
+    def get_image_details(self, img_id: str, *args, **kwargs) -> httpx.Response:
         """Issue httpx GET request to the image found in storage. Assuming request like
         `CFImage().get('target-img-id')`, returns a response with metadata:
 
@@ -216,7 +249,18 @@ class CloudflareImagesAPIv1(CF):
             **kwargs,
         )
 
-    def delete(self, img_id: str, *args, **kwargs) -> httpx.Response:
+    def update_image(self, img_id: str, *args, **kwargs) -> httpx.Response:
+        """Update image access control. On access control change, all copies of the image are purged from cache.
+
+        Issue httpx [PATCH](https://developers.cloudflare.com/api/operations/cloudflare-images-update-image) request to the image."""  # noqa: E501
+        return self.client.patch(
+            url=f"{self.base_api}/{img_id}",
+            headers=CF.set_bearer_auth(self.api_token),
+            *args,
+            **kwargs,
+        )
+
+    def delete_image(self, img_id: str, *args, **kwargs) -> httpx.Response:
         """Issue httpx [DELETE](https://developers.cloudflare.com/images/cloudflare-images/transform/delete-images/) request to the image."""  # noqa: E501
         return self.client.delete(
             url=f"{self.base_api}/{img_id}",
@@ -225,7 +269,7 @@ class CloudflareImagesAPIv1(CF):
             **kwargs,
         )
 
-    def post(self, img_id: str, img: bytes, *args, **kwargs) -> httpx.Response:
+    def upload_image(self, img_id: str, img: bytes, *args, **kwargs) -> httpx.Response:
         """Issue httpx [POST](https://developers.cloudflare.com/images/cloudflare-images/upload-images/upload-via-url/) request to upload image."""  # noqa: E501
         return self.client.post(
             url=self.base_api,
@@ -236,11 +280,11 @@ class CloudflareImagesAPIv1(CF):
             **kwargs,
         )
 
-    def upsert(self, img_id: str, img: bytes) -> httpx.Response:
+    def delete_then_upload_image(self, img_id: str, img: bytes) -> httpx.Response:
         """Ensures a unique id name by first deleting the `img_id` from storage and then
         uploading the `img`."""
-        self.delete(img_id)
-        return self.post(img_id, img)
+        self.delete_image(img_id)
+        return self.upload_image(img_id, img)
 
     def list_images(
         self,
