@@ -18,6 +18,7 @@ Note: `pytest` will work only if no `.env` file exists with the included values.
 
 - Removed: _Django_ as a dependency
 - Added: Instructions to create _Django_ custom storage class
+- Added: `.enable_batch()`
 - Added: `.list_images()`
 - Added: `.get_batch_token()`
 - Added: `.get_usage_statistics()`

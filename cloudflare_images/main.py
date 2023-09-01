@@ -1,11 +1,9 @@
-from typing import Final
+from typing import Self
 from urllib.parse import urlencode
 
 import httpx
 from pydantic import Field
 from start_cloudflare import CF
-
-CF_DELIVER: Final = "https://imagedelivery.net"
 
 
 class CloudflareImagesAPI(CF):
@@ -106,6 +104,9 @@ class CloudflareImagesAPI(CF):
         default=60,
         validation_alias="CF_IMG_TOKEN_TIMEOUT",
     )
+    is_batch: bool = Field(
+        default=False, description="When True, will use a different endpoint."
+    )
 
     @property
     def client(self):
@@ -122,10 +123,16 @@ class CloudflareImagesAPI(CF):
             >>> cf = CloudflareImagesAPI()
             >>> cf.base_api
             'https://api.cloudflare.com/client/v4/accounts/ABC/images/v1'
+            >>> cf.is_batch = True
+            >>> cf.base_api
+            'https://batch.imagedelivery.net'
 
         Returns:
             str: URL endpoint to make requests with the Cloudflare-supplied credentials.
         """
+        if self.is_batch:
+            # See https://developers.cloudflare.com/images/cloudflare-images/upload-images/images-batch/
+            return "https://batch.imagedelivery.net"
         return self.add_account_endpoint(
             f"/{self.account_id}/images/{self.images_api_ver}"
         )
@@ -160,7 +167,7 @@ class CloudflareImagesAPI(CF):
             >>> cf.base_delivery
             'https://imagedelivery.net/DEF'
         """  # noqa: E501
-        return "/".join([CF_DELIVER, self.cf_img_hash])
+        return "/".join(["https://imagedelivery.net", self.cf_img_hash])
 
     def url(self, img_id: str, variant: str = "public") -> str:
         """Generates url based on the Cloudflare hash of the account. The `variant` is based on
@@ -196,16 +203,7 @@ class CloudflareImagesAPI(CF):
 
     def get_batch_token(self) -> httpx.Response:
         """Get a token to use [Images batch API](https://developers.cloudflare.com/images/cloudflare-images/upload-images/images-batch/) for several requests in sequence bypassing Cloudflare's global API rate limits.
-        Note that the token has a expiration time indicated in the response. After the batch token is retrieved,
-        instantiate a new API, like so:
-
-        ```py
-        cf = CloudflareImagesAPI() # uses the .env file's CF_IMG_TOKEN
-        batch_token = cf.get_batch_token().json()['result']['token]
-        batchable = CloudflareImagesAPI(CF_IMG_TOKEN=batch_token) # different token used
-        ```
-
-        Using `batchable.get`, `batchable.post`, etc. should be usable
+        Note that the token has a expiration time indicated in the response.
 
         Returns:
             httpx.Response: Response containing the batch `token` in the result key
@@ -316,3 +314,23 @@ class CloudflareImagesAPI(CF):
         return self.client.get(
             url=f"{self.v2}?{qs}", headers=CF.set_bearer_auth(self.api_token)
         )
+
+    def create_batch_api(self) -> Self:
+        """Use the instance to generate a batch token then return a new
+        API instance where the token is used, e.g.:
+
+        ```py
+        raw = CloudflareImagesAPI()
+        api = cf.create_batch_api()
+        ```
+
+        Should now be able to use batch.upload_image(), batch.list_images() instead of
+        the raw.upload_image(), etc. methods. See the [docs](https://developers.cloudflare.com/images/cloudflare-images/upload-images/images-batch/)
+        """  # noqa: E501
+        try:
+            res = self.get_batch_token()
+            data = res.json()
+            token = data["result"]["token"]
+        except Exception as e:
+            raise Exception(f"Could not generate batch token; {e=}")
+        return CloudflareImagesAPI(CF_IMG_TOKEN=token, is_batch=True)  # type: ignore # noqa: E501
