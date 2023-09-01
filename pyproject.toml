@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "cloudflare-images"
 description = "Wrapper around Cloudflare Images API"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Marcelino G. Veloso III <contact@mv3.dev>"]
 readme = "README.md"
 license = "BSD-3-Clause"

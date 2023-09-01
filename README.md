@@ -23,6 +23,8 @@ Note: `pytest` will work only if no `.env` file exists with the included values.
 - Added: `.get_batch_token()`
 - Added: `.get_usage_statistics()`
 - Added: `.update_image()`
+- Added: `.v2`
+- Renamed: `.base_api` to `v1`
 - Renamed: `.get()` to `.get_image_details()`
 - Renamed: `.post()` to `.upload_image()`
 - Renamed: `.delete()` to `.delete_image()`
@@ -73,7 +75,7 @@ class LimitedStorageCloudflareImages(Storage):
         return File(self.api.get(img_id=name), name=name)
 
     def _save(self, name: str, content: bytes) -> str:
-        res = self.api.upsert(name, content)
+        res = self.api.delete_then_upload_image(name, content)
         return self.api.url(img_id=res.json()["result"]["id"])
 
     def get_valid_name(self, name):

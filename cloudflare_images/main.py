@@ -5,6 +5,12 @@ import httpx
 from pydantic import Field
 from start_cloudflare import CF
 
+DEFAULT = "imagedelivery.net"
+HOST = f"https://{DEFAULT}"
+BATCH_HOST = f"https://batch.{DEFAULT}"
+V1 = "images/v1"
+V2 = "images/v2"
+
 
 class CloudflareImagesAPI(CF):
     """
@@ -49,7 +55,7 @@ class CloudflareImagesAPI(CF):
         >>> cf = CloudflareImagesAPI() # no longer errors out
         >>> CF.set_bearer_auth(cf.api_token)
         {'Authorization': 'Bearer XYZ'}
-        >>> cf.base_api
+        >>> cf.v1
         'https://api.cloudflare.com/client/v4/accounts/ABC/images/v1'
         >>> cf.base_delivery
         'https://imagedelivery.net/DEF'
@@ -94,26 +100,22 @@ class CloudflareImagesAPI(CF):
         description="Used in the middle of the URL in API requests.",
         validation_alias="CLOUDFLARE_CLIENT_API_VERSION",
     )
-    images_api_ver: str = Field(
-        default="v1",
-        title="Cloudflare Images API Version",
-        description="Used at the end of URL in API requests.",
-        validation_alias="CLOUDFLARE_IMAGES_API_VERSION",
-    )
-    timeout: int = Field(
-        default=60,
-        validation_alias="CF_IMG_TOKEN_TIMEOUT",
-    )
+    timeout: int = Field(default=60, validation_alias="CF_IMG_TOKEN_TIMEOUT")
     is_batch: bool = Field(
-        default=False, description="When True, will use a different endpoint."
+        default=False, description="When True, will use a different host."
     )
+
+    @property
+    def auth(self) -> dict:
+        """Convenience shortcut to create an authorization header bearing the token."""
+        return CF.set_bearer_auth(self.api_token)
 
     @property
     def client(self):
         return httpx.Client(timeout=self.timeout)
 
     @property
-    def base_api(self) -> str:
+    def v1(self) -> str:
         """Construct endpoint. See [formula](https://developers.cloudflare.com/images/cloudflare-images/api-request/).
 
         Examples:
@@ -121,21 +123,19 @@ class CloudflareImagesAPI(CF):
             >>> os.environ['CF_ACCT_ID'] = "ABC"
             >>> os.environ['CF_IMG_HASH'], os.environ['CF_IMG_TOKEN'] = "DEF", "XYZ"
             >>> cf = CloudflareImagesAPI()
-            >>> cf.base_api
+            >>> cf.v1
             'https://api.cloudflare.com/client/v4/accounts/ABC/images/v1'
             >>> cf.is_batch = True
-            >>> cf.base_api
-            'https://batch.imagedelivery.net'
+            >>> cf.v1
+            'https://batch.imagedelivery.net/images/v1'
 
         Returns:
             str: URL endpoint to make requests with the Cloudflare-supplied credentials.
         """
         if self.is_batch:
             # See https://developers.cloudflare.com/images/cloudflare-images/upload-images/images-batch/
-            return "https://batch.imagedelivery.net"
-        return self.add_account_endpoint(
-            f"/{self.account_id}/images/{self.images_api_ver}"
-        )
+            return f"{BATCH_HOST}/{V1}"
+        return self.add_account_endpoint(f"/{self.account_id}/{V1}")
 
     @property
     def v2(self) -> str:
@@ -148,8 +148,14 @@ class CloudflareImagesAPI(CF):
             >>> cf = CloudflareImagesAPI()
             >>> cf.v2
             'https://api.cloudflare.com/client/v4/accounts/ABC/images/v2'
+            >>> cf.is_batch = True
+            >>> cf.v2
+            'https://batch.imagedelivery.net/images/v2'
+
         """
-        return self.add_account_endpoint(f"/{self.account_id}/images/v2")
+        if self.is_batch:
+            return f"{BATCH_HOST}/{V2}"
+        return self.add_account_endpoint(f"/{self.account_id}/{V2}")
 
     @property
     def base_delivery(self):
@@ -167,7 +173,7 @@ class CloudflareImagesAPI(CF):
             >>> cf.base_delivery
             'https://imagedelivery.net/DEF'
         """  # noqa: E501
-        return "/".join(["https://imagedelivery.net", self.cf_img_hash])
+        return "/".join([f"{HOST}", self.cf_img_hash])
 
     def url(self, img_id: str, variant: str = "public") -> str:
         """Generates url based on the Cloudflare hash of the account. The `variant` is based on
@@ -196,10 +202,8 @@ class CloudflareImagesAPI(CF):
         Returns:
             httpx.Response: Response containing the counts for `allowed` and `current in the result key
         """  # noqa: E501
-        return self.client.get(
-            url=f"{self.base_api}/stats",
-            headers=CF.set_bearer_auth(self.api_token),
-        )
+        url = f"{self.v1}/stats"
+        return self.client.get(url=url, headers=self.auth)
 
     def get_batch_token(self) -> httpx.Response:
         """Get a token to use [Images batch API](https://developers.cloudflare.com/images/cloudflare-images/upload-images/images-batch/) for several requests in sequence bypassing Cloudflare's global API rate limits.
@@ -208,10 +212,7 @@ class CloudflareImagesAPI(CF):
         Returns:
             httpx.Response: Response containing the batch `token` in the result key
         """  # noqa: E501
-        return self.client.get(
-            url=f"{self.base_api}/batch_token",
-            headers=CF.set_bearer_auth(self.api_token),
-        )
+        return self.client.get(url=f"{self.v1}/batch_token", headers=self.auth)
 
     def get_image_details(self, img_id: str, *args, **kwargs) -> httpx.Response:
         """Issue httpx GET request to the image found in storage. Assuming request like
@@ -240,10 +241,7 @@ class CloudflareImagesAPI(CF):
             ```
         """
         return self.client.get(
-            url=f"{self.base_api}/{img_id}",
-            headers=CF.set_bearer_auth(self.api_token),
-            *args,
-            **kwargs,
+            url=f"{self.v1}/{img_id}", headers=self.auth, *args, **kwargs
         )
 
     def update_image(self, img_id: str, *args, **kwargs) -> httpx.Response:
@@ -252,17 +250,14 @@ class CloudflareImagesAPI(CF):
         Issue httpx [PATCH](https://developers.cloudflare.com/api/operations/cloudflare-images-update-image) request to the image.
         """  # noqa: E501
         return self.client.patch(
-            url=f"{self.base_api}/{img_id}",
-            headers=CF.set_bearer_auth(self.api_token),
-            *args,
-            **kwargs,
+            url=f"{self.v1}/{img_id}", headers=self.auth, *args, **kwargs
         )
 
     def delete_image(self, img_id: str, *args, **kwargs) -> httpx.Response:
         """Issue httpx [DELETE](https://developers.cloudflare.com/images/cloudflare-images/transform/delete-images/) request to the image."""  # noqa: E501
         return self.client.delete(
-            url=f"{self.base_api}/{img_id}",
-            headers=CF.set_bearer_auth(self.api_token),
+            url=f"{self.v1}/{img_id}",
+            headers=self.auth,
             *args,
             **kwargs,
         )
@@ -270,8 +265,8 @@ class CloudflareImagesAPI(CF):
     def upload_image(self, img_id: str, img: bytes, *args, **kwargs) -> httpx.Response:
         """Issue httpx [POST](https://developers.cloudflare.com/images/cloudflare-images/upload-images/upload-via-url/) request to upload image."""  # noqa: E501
         return self.client.post(
-            url=self.base_api,
-            headers=CF.set_bearer_auth(self.api_token),
+            url=self.v1,
+            headers=self.auth,
             data={"id": img_id},
             files={"file": (img_id, img)},
             *args,
@@ -300,7 +295,6 @@ class CloudflareImagesAPI(CF):
         Returns:
             httpx.Response: Contains top-level fields for `success`, `errors`, `messages` and the `result`.
         """  # noqa: E501
-
         if per_page < 10 or per_page > 10000:
             raise Exception(f"Improper {per_page=}")
         if sort_order not in ["asc", "desc"]:
@@ -311,9 +305,7 @@ class CloudflareImagesAPI(CF):
             params["continuation_token"] = continuation_token
         qs = urlencode(params)
 
-        return self.client.get(
-            url=f"{self.v2}?{qs}", headers=CF.set_bearer_auth(self.api_token)
-        )
+        return self.client.get(url=f"{self.v2}?{qs}", headers=self.auth)
 
     def create_batch_api(self) -> Self:
         """Use the instance to generate a batch token then return a new
