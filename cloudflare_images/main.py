@@ -188,12 +188,11 @@ class CloudflareImagesAPI(CF):
 
         Returns:
             httpx.Response: Response containing the counts for `allowed` and `current in the result key
-        """ # noqa: E501
+        """  # noqa: E501
         return self.client.get(
             url=f"{self.base_api}/stats",
             headers=CF.set_bearer_auth(self.api_token),
         )
-
 
     def get_batch_token(self) -> httpx.Response:
         """Get a token to use [Images batch API](https://developers.cloudflare.com/images/cloudflare-images/upload-images/images-batch/) for several requests in sequence bypassing Cloudflare's global API rate limits.
@@ -210,7 +209,7 @@ class CloudflareImagesAPI(CF):
 
         Returns:
             httpx.Response: Response containing the batch `token` in the result key
-        """ # noqa: E501
+        """  # noqa: E501
         return self.client.get(
             url=f"{self.base_api}/batch_token",
             headers=CF.set_bearer_auth(self.api_token),
@@ -252,7 +251,8 @@ class CloudflareImagesAPI(CF):
     def update_image(self, img_id: str, *args, **kwargs) -> httpx.Response:
         """Update image access control. On access control change, all copies of the image are purged from cache.
 
-        Issue httpx [PATCH](https://developers.cloudflare.com/api/operations/cloudflare-images-update-image) request to the image."""  # noqa: E501
+        Issue httpx [PATCH](https://developers.cloudflare.com/api/operations/cloudflare-images-update-image) request to the image.
+        """  # noqa: E501
         return self.client.patch(
             url=f"{self.base_api}/{img_id}",
             headers=CF.set_bearer_auth(self.api_token),
