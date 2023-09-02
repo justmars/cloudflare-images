@@ -345,13 +345,13 @@ dev = ["flake8", "markdown", "twine", "wheel"]
 
 [[package]]
 name = "griffe"
-version = "0.35.2"
+version = "0.36.0"
 description = "Signatures for entire Python programs. Extract the structure, the frame, the skeleton of your project, to generate API documentation or find breaking changes in your API."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "griffe-0.35.2-py3-none-any.whl", hash = "sha256:9650d6d0369c22f29f2c1bec9548ddc7f448f8ca38698a5799f92f736824e749"},
-    {file = "griffe-0.35.2.tar.gz", hash = "sha256:84ecfe3df17454993b8dd485201566609ac6706a2eb22e3f402da2a39f9f6b5f"},
+    {file = "griffe-0.36.0-py3-none-any.whl", hash = "sha256:4235df397b7b56192cbfda601e458526279bdaf3bf1f59d0be368abac72bf42d"},
+    {file = "griffe-0.36.0.tar.gz", hash = "sha256:ccf062126041d19cc4d9850ca46a555a656e738f5e83feb78f36b05fec5974ad"},
 ]
 
 [package.dependencies]
@@ -1456,13 +1456,13 @@ files = [
 
 [[package]]
 name = "start-cloudflare"
-version = "0.0.4"
+version = "0.0.5"
 description = "A Pydantic BaseSettings class intended to be extended by other Cloudflare services."
 optional = false
 python-versions = ">=3.11,<4.0"
 files = [
-    {file = "start_cloudflare-0.0.4-py3-none-any.whl", hash = "sha256:86298be9c1ea6ad5ce60161f54e8f3658f9bdf4434ea31390d01e500cb0e7b10"},
-    {file = "start_cloudflare-0.0.4.tar.gz", hash = "sha256:f4ea5d8cdc60be8af17022cd80209fe0a374613fdb67de9892f099f7a890af2e"},
+    {file = "start_cloudflare-0.0.5-py3-none-any.whl", hash = "sha256:2c76c4851d6a0059b667207a99f8af9b1e310ad6b9c73a89f2ba2ebdf992a253"},
+    {file = "start_cloudflare-0.0.5.tar.gz", hash = "sha256:a2659d6c38e54cad37016638dd3d2822663d9957ca67d92448534f5a095797b5"},
 ]
 
 [package.dependencies]
@@ -1572,4 +1572,4 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "20086d441ecd8302bbc2a06b9f8dd66dc2a3bff2679c961e11ae1c7ebad42f14"
+content-hash = "5439dca01bf65631109a15d49e986849e424e6ab8b0e866fc2a2cb05930bd660"
