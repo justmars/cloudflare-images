@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "cloudflare-images"
 description = "Wrapper around Cloudflare Images API"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["Marcelino G. Veloso III <contact@mv3.dev>"]
 readme = "README.md"
 license = "BSD-3-Clause"
@@ -25,10 +25,10 @@ start-cloudflare = "^0.0.5"
 rich = "^13.3"
 pytest = "^7.2"
 pytest-cov = "^2.12.1"
-pre-commit = "^2.21"
-mkdocs = "^1.4.2"
+pre-commit = "^3.5"
+mkdocs = "^1.5.3"
 mkdocstrings = { extras = ["python"], version = "^0.20.0" }
-mkdocs-material = "^9.2.6"
+mkdocs-material = "^9.4"
 
 [tool.pytest.ini_options]
 minversion = "7.2"

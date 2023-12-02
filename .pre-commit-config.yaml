@@ -3,27 +3,19 @@ default_language_version:
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v4.5.0
     hooks:
       - id: check-added-large-files
       - id: end-of-file-fixer
       - id: trailing-whitespace
       - id: name-tests-test
         args: ["--django"]
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.286
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.1.6
     hooks:
+      # Run the linter.
       - id: ruff
-  - repo: https://github.com/psf/black
-    rev: 23.7.0
-    hooks:
-      - id: black
-        language_version: python3
-        args: [--preview]
-  - repo: https://github.com/asottile/blacken-docs
-    rev: 1.16.0
-    hooks:
-      - id: blacken-docs
-        additional_dependencies:
-          - black==23.7.0
-        args: [--skip-errors]
+        args: [ --fix ]
+      # Run the formatter.
+      - id: ruff-format

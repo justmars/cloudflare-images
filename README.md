@@ -16,6 +16,13 @@ Note: `pytest` will work only if no `.env` file exists with the included values.
 
 ## Changes
 
+### Dec. 2, 2023
+
+- Compatibility: python 3.12
+- Compatibility: pydantic 2.5
+
+### Initial
+
 - Removed: _Django_ as a dependency
 - Added: Instructions to create _Django_ custom storage class
 - Added: `.enable_batch()`
