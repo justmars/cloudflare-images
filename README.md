@@ -8,11 +8,11 @@ Wrapper around Cloudflare Images API, with instructions to create a usable custo
 
 See [documentation](https://justmars.github.io/cloudflare-images).
 
-1. Run `poetry install`
-2. Run `poetry shell`
+1. Run `just start`
+2. Run `just dumpenv`
 3. Run `pytest`
 
-Note: `pytest` will work only if no `.env` file exists with the included values. See docstrings.
+Note: `pytest` will work only if **no** `.env` file exists with the included values. See docstrings.
 
 ## Changes
 

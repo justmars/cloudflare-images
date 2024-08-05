@@ -12,4 +12,4 @@ hide:
     - $5 per month per 100k images stored
     - $1 per month per 100k images delivered
 
-::: cloudflare_images.api.CloudflareImagesAPI
+::: cloudflare_images.main.CloudflareImagesAPI

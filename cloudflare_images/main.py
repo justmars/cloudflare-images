@@ -32,13 +32,13 @@ class CloudflareImagesAPI(CF):
         pydantic_core._pydantic_core.ValidationError: 3 validation errors for CloudflareImagesAPI
         CF_ACCT_ID
           Field required [type=missing, input_value={}, input_type=dict]
-            For further information visit https://errors.pydantic.dev/2.5/v/missing
+            For further information visit https://errors.pydantic.dev/2.8/v/missing
         CF_IMG_HASH
           Field required [type=missing, input_value={}, input_type=dict]
-            For further information visit https://errors.pydantic.dev/2.5/v/missing
+            For further information visit https://errors.pydantic.dev/2.8/v/missing
         CF_IMG_TOKEN
           Field required [type=missing, input_value={}, input_type=dict]
-            For further information visit https://errors.pydantic.dev/2.5/v/missing
+            For further information visit https://errors.pydantic.dev/2.8/v/missing
         >>> import os
         >>> os.environ['CF_ACCT_ID'] = "ABC"
         >>> cf = CloudflareImagesAPI() # will error out since still missing other values
@@ -46,10 +46,10 @@ class CloudflareImagesAPI(CF):
         pydantic_core._pydantic_core.ValidationError: 2 validation errors for CloudflareImagesAPI
         CF_IMG_HASH
           Field required [type=missing, input_value={'CF_ACCT_ID': 'ABC'}, input_type=dict]
-            For further information visit https://errors.pydantic.dev/2.5/v/missing
+            For further information visit https://errors.pydantic.dev/2.8/v/missing
         CF_IMG_TOKEN
           Field required [type=missing, input_value={'CF_ACCT_ID': 'ABC'}, input_type=dict]
-            For further information visit https://errors.pydantic.dev/2.5/v/missing
+            For further information visit https://errors.pydantic.dev/2.8/v/missing
         >>> # we'll add all the values needed
         >>> os.environ['CF_IMG_HASH'], os.environ['CF_IMG_TOKEN'] = "DEF", "XYZ"
         >>> cf = CloudflareImagesAPI() # no longer errors out
