@@ -1,7 +1,7 @@
 [project]
 name = "cloudflare-images"
 description = "Wrapper around Cloudflare Images API"
-version = "0.1.6"
+version = "0.1.8"
 authors = [
   {name="Marcelino Veloso III", email="hi@mv3.dev" }
 ]
@@ -21,14 +21,11 @@ dev = [
   "twine >= 4.0.2",
 ]
 
-[tool.setuptools.packages.find]
-include = ["img"]
-
 [tool.pytest.ini_options]
 minversion = "8.3"
 addopts = "-ra -q --doctest-modules --cov"
 # filterwarnings = ["ignore::DeprecationWarning"] see pkg_resources
-testpaths = ["cloudflare_images"]
+testpaths = ["src"]
 
 [tool.ruff]
 line-length = 88
@@ -37,7 +34,3 @@ line-length = 88
 ignore = ["F401", "F403"]
 fixable = ["F", "E", "W", "I001"]
 select = ["F", "E", "W", "I001"]
-
-[tool.ruff.per-file-ignores]
-"src/config/settings.py" = ["E501"]
-"*/migrations/*.py" = ["E501"]
